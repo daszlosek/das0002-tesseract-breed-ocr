@@ -1,0 +1,155 @@
+---
+title: "Breed Box Plot"
+author: "IDEXX Bioresearch"
+date: "October 18th, 2018"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      collapsed: no
+---
+
+```{r message=FALSE, echo=FALSE}
+
+rm(list=ls())
+
+packages = c('rmarkdown', 'plyr', 'dplyr','ggplot2', 'readr', 'tidyr', 'stringr',  'knitr', 'sparklyr', 'shiny', 'data.table', 'zoo','fasttime')
+
+package.check <- lapply(packages, FUN = function(x) {
+    if (!require(x, character.only = TRUE)) {
+        install.packages(x, dependencies = TRUE)
+        library(x, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE)
+    }
+})
+
+
+roundlyr <- function(x,y) {
+  round1 <- format(round(x, y), nsmall = y)
+  return(round1)
+}
+
+
+
+library("pdftools")
+
+#install.packages("magick")
+
+library("magick")
+library("animation")
+library("tesseract")
+```
+
+```{r data sources}
+
+single_pdf <- "R:\\CMO-Biostatistics\\User\\Donald Ad Hoc\\DAS100039 - breed data extraction\\single_page.pdf"
+
+
+multi_pdf <- "R:\\CMO-Biostatistics\\User\\Donald Ad Hoc\\DAS100039 - breed data extraction\\raw_breed_book_data.pdf"
+```
+
+```{r convert pdf to png with magick}
+
+pages <- magick::image_read_pdf(multi_pdf)
+
+pages
+
+j <- 1:13
+for (i in j){
+pages[i] %>% image_write(., path = paste0("R:/CMO-Biostatistics/User/Donald Ad Hoc/DAS100039 - breed data extraction/image_data/image",i,".png"), format = "png")
+  
+} 
+```
+
+```{r image analysis no preprocessing}
+
+text2 <-  ocr(page)
+cat(text2) # In love
+
+```
+
+```{r image processing}
+page_charcoal <- image_charcoal(page, radius = 1, sigma = 0.5)
+
+page_charcoal
+
+text_char <- ocr(page_charcoal)
+cat(text_char)
+```
+
+```{r image preprocessing}
+page_flat <- image_flatten(page, 'Modulate')
+
+page_flat
+
+text_flat <- ocr(page_flat)
+cat(text_flat)
+```
+
+
+```{r image preprocessing}
+
+page_process <- image_flatten(page, 'Modulate') %>% image_crop(.,"600x800")
+page_process
+
+text_process <- ocr(page_process)
+cat(text_process)
+
+```
+
+
+```{r image preprocessing - Step 1 Get the dog name}
+                                                            # width x height
+page_process1 <- image_flatten(page, 'Modulate') %>% image_crop(.,"1800x100+100+200")
+page_process1
+
+text_process1 <- ocr(page_process1)
+cat(text_process1)
+
+
+breed_name <- text_process1 %>% data.frame() %>% dplyr::rename(., "breed" = ".")
+```
+
+```{r image preprocessing - Step 2 Get the dog info}
+                                                            # width x height
+page_process2 <- image_flatten(page, 'Modulate') %>% image_crop(.,"500x300+100+400")
+page_process2
+
+text_process2 <- ocr(page_process2)
+cat(text_process2)
+
+breed_info <- text_process2 %>% data.frame() %>% dplyr::rename(., "breed.info" = ".")
+```
+
+```{r image preprocessing - Step 3 Get the dog name for 2nd half of page}
+                                                            # width x height
+page_process3 <- image_flatten(page, 'Modulate') %>% image_crop(.,"1800x100+100+1450")
+page_process3
+
+text_process3 <- ocr(page_process3)
+cat(text_process3) 
+
+breed_name2 <- text_process3 %>% data.frame() %>% dplyr::rename(., "breed" = ".")
+```
+
+```{r image preprocessing - Step 4 Get the dog info for 2nd half of page}
+                                                            # width x height
+page_process4 <- image_flatten(page, 'Modulate') %>% image_crop(.,"500x300+100+1650")
+page_process4
+
+text_process4 <- ocr(page_process4)
+cat(text_process4)
+
+
+breed_info2 <- text_process4 %>% data.frame() %>% dplyr::rename(., "breed.info" = ".")
+```
+
+```{r data construction}
+
+top_half <- cbind(breed_name,breed_info)
+
+bottom_half <- cbind(breed_name2,breed_info2)
+
+single_page <- rbind(top_half,bottom_half)
+```
+

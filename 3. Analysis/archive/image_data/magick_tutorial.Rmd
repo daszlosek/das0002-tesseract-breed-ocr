@@ -1,0 +1,62 @@
+---
+title: "Breed Box Plot"
+author: "IDEXX Bioresearch"
+date: "October 18th, 2018"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      collapsed: no
+---
+
+```{r message=FALSE, echo=FALSE}
+
+rm(list=ls())
+
+packages = c('rmarkdown', 'plyr', 'dplyr','ggplot2', 'readr', 'tidyr', 'stringr',  'knitr', 'sparklyr', 'shiny', 'data.table', 'zoo','fasttime')
+
+package.check <- lapply(packages, FUN = function(x) {
+    if (!require(x, character.only = TRUE)) {
+        install.packages(x, dependencies = TRUE)
+        library(x, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE)
+    }
+})
+
+
+roundlyr <- function(x,y) {
+  round1 <- format(round(x, y), nsmall = y)
+  return(round1)
+}
+
+
+
+library("pdftools")
+
+#install.packages("magick")
+
+library("magick")
+```
+
+```{r}
+str(magick::magick_config())
+```
+
+
+```{r}
+
+pdf <- "R:\\CMO-Biostatistics\\User\\Donald Ad Hoc\\DAS100039 - breed data extraction\\breed_pdf_extract.pdf"
+
+#pdf <- pdftools::pdf_text("C:\\Users\\dszlosek\\Desktop\\biometrics_example.pdf")
+
+pdf2 <- pdftools::pdf_text(pdf) %>% data.frame()
+
+
+pdf2
+
+print(pdf2$.)
+
+C:\Users\dszlosek\Desktop\biometrics_example.pdf
+
+```
+
